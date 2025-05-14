@@ -7,12 +7,12 @@
 #include <stdint.h>
 
 #ifdef __cplusplus
-extern "C" {}
+extern "C" {
 #endif
 
 void lcd_interface_init();
 void lcd_clear();
-void lcd_set_cursor(int row, int col);
+void lcd_set_cursor(uint8_t col, uint8_t row);
 
 void lcd_print_string(const char *str);
 void lcd_println_string(const char *str);

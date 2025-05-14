@@ -4,15 +4,18 @@
 
 #include "lcd_interface.h"
 #include "LiquidCrystal_I2C.h"
+#include "config/include_header.h"
 
 static LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 extern "C" {
 
   void lcd_interface_init(void) {
+    serial_println_str("[DEBUG] lcd_interface_init()]");
     lcd.init();
     lcd.backlight();
     lcd.clear();
+    serial_println_str("[DEBUG] lcd ready]");
   }
 
   void lcd_clear(void) {
@@ -23,11 +26,11 @@ extern "C" {
     lcd.setCursor(col, row);
   }
 
-  void lcd_print_str(const char* text) {
+  void lcd_print_string(const char* text) {
     lcd.print(text);
   }
 
-  void lcd_println_str(const char* text) {
+  void lcd_println_string(const char* text) {
     lcd.print(text);
     lcd.setCursor(0, 1);  // pindah ke baris berikutnya
   }

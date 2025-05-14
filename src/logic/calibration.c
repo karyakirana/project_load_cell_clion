@@ -46,7 +46,7 @@ bool calibration_execute(float mass_in_gram) {
 bool calibration_load_from_eeprom(void) {
   float stored = 1.0f;
 
-  serial_println_str("[DEBUG] Masuk ke calibration_load_from_eeprom()");
+  // serial_println_str("[DEBUG] Masuk ke calibration_load_from_eeprom()");
 
   if (!eeprom_get_scale(&stored)) {
     serial_println_str("eeprom_get_scale() failed");

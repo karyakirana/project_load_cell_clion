@@ -20,3 +20,9 @@
 
 // SERIAL COM
 #define BAUDRATE 9600
+
+// button map
+#define PIN_A 7
+#define PIN_B 8
+#define PIN_C 9
+#define PIN_D 10

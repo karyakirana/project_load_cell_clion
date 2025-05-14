@@ -8,6 +8,7 @@
 #include <Arduino.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include "driver/serial_com_interface.h"
 
