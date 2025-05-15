@@ -10,7 +10,7 @@
 #define LCD_REFRESH_RATE 250
 
 enum gramature_mode {GRAM, KG, TON};
-static enum gramature_mode gram_mode_val = GRAM;
+static enum gramature_mode gram_mode_val = KG;
 
 static float weight_val = 0.0f;
 static char weight_display_val[13] = {0};
@@ -23,6 +23,8 @@ static uint32_t lcd_refresh_last_time = 0;
 
 static void input_lcd_render(void);
 static void latest_weight_val_float_to_char_gr(void);
+static void latest_weight_val_float_to_char_kg(void);
+static void latest_weight_val_float_to_char_ton(void);
 
 // btn function and helper of it
 static void btn_next(void);
@@ -56,6 +58,10 @@ static void latest_weight_val_float_to_char_gr() {
   memcpy(weight_display_val + padding, buffer, len);
   weight_display_val[12] = '\0';
 }
+
+static void latest_weight_val_float_to_char_kg() {}
+
+static void latest_weight_val_float_to_char_ton() {}
 
 bool calibration_input_render() {
   uint32_t current_time = millis();

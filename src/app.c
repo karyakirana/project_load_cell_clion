@@ -41,6 +41,7 @@ void app_update() {
     } else if (global_mode_val == UI_LCD_CALIBRATION_MODE) {
         serial_println_str("Calibration mode");
     }
+    btn_calibration_mode_active();
     switch (global_mode_val) {
         case UI_LCD_CALIBRATION_MODE:
             ui_lcd_calibration_update(&global_mode_val);
@@ -50,7 +51,6 @@ void app_update() {
             weight_update();
             ui_lcd_weight_update();
             serial_com_loop();
-            btn_calibration_mode_active();
             break;
     }
 
@@ -59,9 +59,12 @@ void app_update() {
 }
 
 static void btn_calibration_mode_active(void) {
-    if (button_is_pressed(BTN_B)) {
-        global_mode_val = UI_LCD_CALIBRATION_MODE;
-        serial_println_str("button pressed");
-        // delay(2000);
+    if (button_is_pressed(BTN_D)) {
+        serial_println_str("btn_calibration_mode_active pressed");
+        if (global_mode_val == UI_LCD_CALIBRATION_MODE) {
+            global_mode_val = NORMAL_MODE;
+        } else {
+            global_mode_val = UI_LCD_CALIBRATION_MODE;
+        }
     }
 }

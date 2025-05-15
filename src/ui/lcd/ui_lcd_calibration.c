@@ -40,6 +40,7 @@ static void calibration_input_init(void);
 static void calibration_input(void);
 static void calibration_save(void);
 static void calibration_finish(void);
+static void calibration_cancel();
 
 static void btn_next(void);
 static void btn_previous(void);

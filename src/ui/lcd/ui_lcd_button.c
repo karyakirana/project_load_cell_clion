@@ -40,7 +40,7 @@ bool button_is_pressed(button_code_t button) {
   // return digitalRead(button_pins[button]) == LOW;
   // Asumsikan button adalah 1-4 (BTN_A sampai BTN_D)
   // atau pastikan button_code_t enum nilainya sesuai untuk index array
-  if (button <= BTN_NONE || button >= BTN_D) return false;
+  if (button <= BTN_NONE || button > BTN_D) return false;
 
   int current_reading = digitalRead(button_pins[button]);
 
