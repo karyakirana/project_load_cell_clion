@@ -19,9 +19,12 @@ static uint32_t button_press_start[5] = {0};
 static bool button_last_state[5] = {false};
 static uint32_t button_combo_time[5] = {0};
 static uint32_t button_debounce_time[5] = {0};
+static uint32_t last_debounce_time[5] = {0};
+static int32_t button_stable_state[5] = {HIGH};
+static int32_t button_last_reading[5] = {HIGH};
 
 void button_init(void) {
-  for (int i = 1; i <= BTN_C; i++) {
+  for (int i = 1; i <= BTN_D; i++) {
     if (button_pins[i] != -1) {
       pinMode(button_pins[i], INPUT_PULLUP);
     }
@@ -33,8 +36,32 @@ void button_init(void) {
 }
 
 bool button_is_pressed(button_code_t button) {
-  if (button <= BTN_NONE || button > BTN_C) return false;
-  return digitalRead(button_pins[button]) == LOW;
+  // if (button <= BTN_NONE || button > BTN_D) return false;
+  // return digitalRead(button_pins[button]) == LOW;
+  // Asumsikan button adalah 1-4 (BTN_A sampai BTN_D)
+  // atau pastikan button_code_t enum nilainya sesuai untuk index array
+  if (button <= BTN_NONE || button >= BTN_D) return false;
+
+  int current_reading = digitalRead(button_pins[button]);
+
+  // jika bacaan berubah, reset debounce timer
+  if (current_reading != button_last_reading[button]) {
+    last_debounce_time[button] = millis();
+  }
+
+  if ((millis() - last_debounce_time[button]) > BUTTON_DEBOUNCE_MS) {
+    // jika sudah cukup waktu, dan bacaan berbeda dari state stabil sebelumnya
+    if (current_reading != button_stable_state[button]) {
+      button_stable_state[button] = current_reading;
+      // jika state stabilnya adalah LOW (ditekan), kembalikan true
+      if (button_stable_state[button] == LOW) {
+        button_last_reading[button] = current_reading; // simpan bacaan terakhir
+        return true; // tombol benar-benar ditekan
+      }
+    }
+  }
+  button_last_reading[button] = current_reading; // simpan bacaan terakhir
+  return false; // Tombol tidak ditekan atau masih bouncing
 }
 
 bool button_is_combo(button_code_t button_1, button_code_t button_2) {

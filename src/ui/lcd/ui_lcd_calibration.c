@@ -6,9 +6,11 @@
 
 #include "driver/hx711_interface.h"
 #include "driver/eeprom_interface.h"
-#include "logic/tare.h"
-#include "ui_lcd_button.h"
 #include "driver/lcd_interface.h"
+#include "logic/tare.h"
+#include "logic/calibration.h"
+#include "ui_lcd_button.h"
+#include "ui_lcd/calibration_sub_lcd.h"
 
 #define INPUT_LEN 12
 
@@ -18,6 +20,7 @@ static const char* finish_menu[] = { "RETRY", "FINISH" };
 static uint8_t finish_menu_selected = 0;
 
 static calibration_state_t state = STATE_CALIBRATION_START;
+static calibration_process_t process = CALIBRATION_INIT;
 
 static global_mode_t global_mode_val = NORMAL_MODE; // default GLOBAL STATE
 
@@ -32,6 +35,7 @@ static char input_lcd_val[13] = {0};
 static uint8_t cursor_pos = 0;
 
 static void calibration_start(void);
+static void calibration_tare(void);
 static void calibration_input_init(void);
 static void calibration_input(void);
 static void calibration_save(void);
@@ -56,36 +60,33 @@ void ui_lcd_calibration_init() {
 }
 
 void ui_lcd_calibration_update(global_mode_t* global_state) {
-  serial_print_str("STATE : ");
-  serial_print_int(state);
+  serial_print_str("Process : ");
+  serial_print_int(process);
   serial_print_str("\n");
-  switch (state) {
-    case STATE_CALIBRATION_START:
+
+  switch (process) {
+    case CALIBRATION_INIT:
       calibration_start();
       break;
-    case STATE_CALIBRATION_START_NEW_SCALE:
-      calibration_start();
+    case CALIBRATION_TARE:
+      calibration_tare();
       break;
-    case STATE_CALIBRATION_INPUT_INIT:
+    case CALIBRATION_INPUT_INIT:
       calibration_input_init();
       break;
-    case STATE_CALIBRATION_INPUT:
+    case CALIBRATION_INPUT:
       calibration_input();
       break;
-    case STATE_CALIBRATION_SAVE:
-      calibration_save();
+    case CALIBRATION_FAIL:
       break;
-    case STATE_CALIBRATION_FINISH:
-      calibration_finish();
-      break;
-
-    default: STATE_IDLE:
+    case CALIBRATION_FINISH:
+    default:
       break;
   }
 }
 
 static void calibration_start(void) {
-  serial_println_str("calibration start");
+  serial_println_str("calibration init");
   // initialize
   err = NULL;
   latest_known_weight_gram = 0.0f;
@@ -94,103 +95,59 @@ static void calibration_start(void) {
   input_val = 0.0f;
   memset(input_lcd_val, 0, sizeof(input_lcd_val));
 
-  if (state == STATE_CALIBRATION_START) {
-    // get latest known weight from eeprom
-    serial_println_str("calibration start line 102");
-    if (!eeprom_get_last_units(&latest_scale_factor)) {
-      serial_println_str("calibration start line 104");
-      state = STATE_CALIBRATION_FINISH;
-      err = "EEPROM CALIBRATION ERROR";
-      serial_println_str("EEPROM LATEST UNIT ERROR");
-      return;
-    }
-    // get latest scale factor
-    if (!eeprom_get_scale(&latest_scale_factor)) {
-      serial_println_str("calibration start line 112");
-      state = STATE_CALIBRATION_FINISH;
-      err = "EEPROM SCALE ERROR";
-      serial_println_str("EEPROM SCALE ERROR");
-      return;
-    }
+  bool calibration_init_status = calibration_init();
+  if (!calibration_init_status) {
+    process = CALIBRATION_FAIL;
   }
 
-  serial_println_str("calibration start line 120");
+  // ubah state ke proses selanjutnya
+  process = CALIBRATION_TARE;
+  serial_println_str("Calibration init done");
+}
 
-  // tare process
+static void calibration_tare(void) {
+  serial_println_str("calibration tare");
+
   if (!tare_execute()) {
     serial_println_str("calibration start line 122");
-    state = STATE_CALIBRATION_FINISH;
+    process = CALIBRATION_FAIL;
     err = "TARE ERROR";
     serial_println_str("TARE ERROR");
     return;
   }
-
-  serial_println_str("calibration start line 131");
+  serial_println_str("line 118");
   offset_val = hx711_get_offset();
-  // ubah state ke proses selanjutnya
-  state = STATE_CALIBRATION_INPUT_INIT;
-  serial_println_str("calibration start line 138");
+  process = CALIBRATION_INPUT_INIT;
+  serial_println_str("calibration tare done");
 }
 
 static void calibration_input_init(void) {
   serial_println_str("calibration input init");
   // initialize
   // reset lcd
-  lcd_cursor_on();
-  lcd_set_cursor(0, 0);
-  lcd_print_string("                ");
-  lcd_set_cursor(0, 1);
-  lcd_print_string("                ");
-  // set calibration val display
+  calibration_sub_lcd_init();
+  // // get calibration known weight
+  latest_known_weight_gram = calibration_get_known_weight();
+  // // set calibration val display
   if (latest_known_weight_gram == 0.0f) {
-    input_val = 1000.0f;
+    set_lcd_weight_val(1000.0f);
   } else {
-    input_val = latest_known_weight_gram;
+    set_lcd_weight_val(latest_known_weight_gram);
   }
-  // float to string
-  latest_known_weigt_float_to_char();
-  cursor_pos = 0;
-  state = STATE_CALIBRATION_INPUT;
-}
-
-static void latest_known_weigt_float_to_char() {
-  char buffer[13];
-  dtostrf(input_val, 6, 2, buffer);
-  int8_t len = strlen(buffer);
-  int8_t padding = 12 - len;
-
-  memset(input_lcd_val, ' ', 12);
-  memcpy(input_lcd_val + padding, buffer, len);
-  input_lcd_val[12] = '\0'; // null terminated
+  // cursor_pos = 0;
+  process = CALIBRATION_INPUT;
+  serial_println_str("Calibration input init done");
 }
 
 static void calibration_input(void) {
   serial_println_str("calibration input");
-  lcd_set_cursor(0, 0);
-  lcd_print_string(input_lcd_val);
-  if (gramature_val == KG) {
-    lcd_print_string("KG");
-    lcd_set_cursor(0, 1);
-    lcd_print_string("MODE : KG");
-  } else if (gramature_val == TON) {
-    lcd_print_string("TON");
-    lcd_set_cursor(0, 1);
-    lcd_print_string("MODE : TON");
-  } else {
-    lcd_print_string("GR");
-    lcd_set_cursor(0, 1);
-    lcd_print_string("MODE : GRAM");
+
+  bool input_status = calibration_input_render();
+
+  if (input_status) {
+    process = CALIBRATION_SAVE;
+    return;
   }
-  lcd_set_cursor(cursor_pos, 0);
-  // serial_println_str("calibration start line 170");
-  // btn prev
-  btn_previous();
-  // serial_println_str("calibration start line 173");
-  // btn next
-  btn_next();
-  // serial_println_str("calibration start line 176");
-  // btn change char number
-  btn_up();
   // serial_println_str("calibration start line 176");
   // btn change gramature val
   btn_change_gramature_input();

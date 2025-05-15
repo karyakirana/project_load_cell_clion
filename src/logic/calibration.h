@@ -12,6 +12,18 @@ extern "C" {
 #endif
 
 /**
+ * @brief Perisapan sebelum kalibrasi
+ * @return
+ */
+bool calibration_init();
+
+/**
+ * @brief Mengambil nilai known weight calibration
+ * @return
+ */
+float calibration_get_known_weight(void);
+
+/**
  * Jalankan proses kalibrasi:
  * - User meletakkan beban diketahui (mass_in_gram)
  * - Dibaca berat dari HX711

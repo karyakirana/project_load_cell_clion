@@ -45,7 +45,8 @@ void app_update() {
         case UI_LCD_CALIBRATION_MODE:
             ui_lcd_calibration_update(&global_mode_val);
             break;
-        default: NORMAL_MODE:
+        case NORMAL_MODE:
+        default:
             weight_update();
             ui_lcd_weight_update();
             serial_com_loop();
@@ -54,13 +55,13 @@ void app_update() {
     }
 
     serial_println_str("app updated");
-    delay(500);
+    delay(50);
 }
 
 static void btn_calibration_mode_active(void) {
     if (button_is_pressed(BTN_B)) {
         global_mode_val = UI_LCD_CALIBRATION_MODE;
         serial_println_str("button pressed");
-        delay(2000);
+        // delay(2000);
     }
 }

@@ -16,6 +16,10 @@ bool eeprom_set_offset(uint32_t offset) {
 bool eeprom_get_offset(uint32_t* out) {
   if (!out) return false;
   EEPROM.get(ADDR_OFFSET, *out);
+  if (isnan(*out) || isinf(*out)) {
+    *out = 0.0f;
+    return false;
+  }
   return true;
 }
 
@@ -27,6 +31,10 @@ bool eeprom_set_scale(float scale) {
 bool eeprom_get_scale(float* out) {
   if (!out) return false;
   EEPROM.get(ADDR_SCALE, *out);
+  if (isnan(*out) || isinf(*out)) {
+    *out = 0.0f;
+    return false;
+  }
   return true;
 }
 
@@ -38,6 +46,10 @@ bool eeprom_set_last_units(float value) {
 bool eeprom_get_last_units(float* out) {
   if (!out) return false;
   EEPROM.get(ADDR_LAST_UNITS, *out);
+  if (isnan(*out) || isinf(*out)) {
+    *out = 0.0f;
+    return false;
+  }
   return true;
 }
 

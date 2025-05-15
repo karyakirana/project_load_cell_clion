@@ -3,7 +3,7 @@
 //
 
 #ifndef UI_LCD_BUTTON_H
-#define UI_LCD_BUTTON_H
+#define UI_LCD_BUTTON_H0
 
 #include "config/include_header.h"
 

@@ -10,7 +10,43 @@
 #define CALIBRATION_SAMPLES    10
 #define MIN_MASS_THRESHOLD     0.5f   // Minimal bobot untuk kalibrasi agar valid
 
+static float eeprom_known_weight_val = 0.0f;
+static float eeprom_scale_val = 0.0f;
+
 static float scale_factor = 1.0f;  // nilai default defensif
+
+bool calibration_init() {
+  // ambil eeprom known weight
+  // serial_println_str("calibration_init()");
+  if (!eeprom_get_last_units(&eeprom_known_weight_val)) {
+    serial_println_str("eeprom_known_weight_val error");
+    eeprom_known_weight_val = 0.0f;
+    return false;
+  }
+
+  if (isnan(eeprom_known_weight_val) || isinf(eeprom_known_weight_val) || eeprom_known_weight_val < 0.0f) {
+    serial_println_str("[CAL_LOGIC] last_units dari EEPROM tidak valid/negatif. Reset ke 0.0g.");
+    eeprom_known_weight_val = 0.0f;
+  }
+
+  // ambil eeprom scale factor
+  if (!eeprom_get_scale(&eeprom_scale_val)) {
+    serial_println_str("eeprom_scale_val error");
+    eeprom_scale_val = 0.0f;
+    return false;
+  }
+
+  if (isnan(eeprom_scale_val) || isinf(eeprom_scale_val) || eeprom_scale_val < 0.0f) {
+    serial_println_str("[CAL_LOGIC] scale dari EEPROM tidak valid/nol. Reset ke 1.0.");
+    eeprom_scale_val = 0.0f;
+  }
+
+  return true;
+}
+
+float calibration_get_known_weight() {
+  return eeprom_known_weight_val;
+}
 
 bool calibration_execute(float mass_in_gram) {
   if (mass_in_gram < MIN_MASS_THRESHOLD) {

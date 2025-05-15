@@ -23,6 +23,17 @@ typedef enum {
   STATE_CALIBRATION_FINISH
 } calibration_state_t;
 
+typedef enum {
+  IDLE,
+  CALIBRATION_INIT,
+  CALIBRATION_TARE,
+  CALIBRATION_INPUT_INIT,
+  CALIBRATION_INPUT,
+  CALIBRATION_SAVE,
+  CALIBRATION_FAIL,
+  CALIBRATION_FINISH
+} calibration_process_t;
+
 void ui_lcd_calibration_init(void);
 
 void ui_lcd_calibration_update(global_mode_t* global_state);

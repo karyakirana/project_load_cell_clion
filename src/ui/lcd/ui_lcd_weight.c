@@ -84,5 +84,5 @@ static void weight_tare_display(void) {
     lcd_set_cursor(0, 0);
     lcd_print_string("Tare Selesai");
   }
-  delay(1000);
+  // delay(50);
 }
